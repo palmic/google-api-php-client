@@ -184,7 +184,29 @@ class apiOAuth2 extends apiAuth {
       $request->setUrl($requestUrl);
     }
 
-    // Cannot sign the request without an OAuth access token.
+	  ################### michal.palma@gmail.com ######################################################################
+	  # workaround for "(403) Access Not Configured" from unspecified reasons like this: https://groups.google.com/forum/#!topic/google-translate-api/dW5isxYaDZE[1-25]
+	  # if You have that problem on some IPs, just use browser key instead of Server key and set the apiClient like this:
+	  #
+	  # global $apiConfig;
+	  # $apiConfig['referer'] = 'Your referer from Browser key https://code.google.com/apis/console/';
+	  #
+	  # $client = new apiClient();
+	  # $client->setDeveloperKey('Your Browser key API key');
+	  #
+	  # Please note that Any machine can connect Your API account with Your Browser key from ANY IP ADDRESS if they know it!!!
+	  # Iam not responsible for any damage or loss with this code
+	  # michal.palma@gmail.com
+	  #
+	  #################################################################################################################
+	  global $apiConfig;
+	  if ($apiConfig['referer']) {
+		  $headers['Referer'] = $apiConfig['referer'];
+	  }
+	  $request->setRequestHeaders($headers);
+	  #################################################################################################################
+
+	  // Cannot sign the request without an OAuth access token.
     if (null == $this->accessToken) {
       return $request;
     }
@@ -202,9 +224,8 @@ class apiOAuth2 extends apiAuth {
     }
 
     // Add the OAuth2 header to the request
-    $request->setRequestHeaders(
-        array('Authorization' => 'Bearer ' . $this->accessToken['access_token'])
-    );
+	$headers['Authorization'] = 'Bearer ' . $this->accessToken['access_token'];
+    $request->setRequestHeaders($headers);
 
     return $request;
   }
