@@ -178,10 +178,17 @@ class apiOAuth2 extends apiAuth {
   public function sign(apiHttpRequest $request) {
     // add the developer key to the request before signing it
     if ($this->developerKey) {
-      $requestUrl = $request->getUrl();
-      $requestUrl .= (strpos($request->getUrl(), '?') === false) ? '?' : '&';
-      $requestUrl .=  'key=' . urlencode($this->developerKey);
-      $request->setUrl($requestUrl);
+	  if (strtolower($request->getRequestMethod()) === 'post' && $request->getRequestHeader('x-http-method-override')) {
+		  $postBody = json_decode($request->getPostBody());
+		  $postBody->key = $this->developerKey;
+      	  $request->setPostBody(json_encode($postBody));
+	  }
+		else {
+			$requestUrl = $request->getUrl();
+			$requestUrl .= (strpos($request->getUrl(), '?') === false) ? '?' : '&';
+			$requestUrl .=  'key=' . urlencode($this->developerKey);
+			$request->setUrl($requestUrl);
+		}
     }
 
 	  ################### michal.palma@gmail.com ######################################################################

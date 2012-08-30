@@ -113,10 +113,17 @@ class apiServiceResource {
     if (!isset($method['parameters'])) {
       $method['parameters'] = array();
     }
-    
-    $method['parameters'] = array_merge($method['parameters'], $this->stackParameters);
+
+	  $contentType = false;
+	  if (isset($parameters['contentType'])) {
+		  $contentType = $parameters['contentType'];
+		  unset($parameters['contentType']);
+	  }
+
+
+	  $method['parameters'] = array_merge($method['parameters'], $this->stackParameters);
     foreach ($parameters as $key => $val) {
-      if ($key != 'postBody' && ! isset($method['parameters'][$key])) {
+      if ($key != 'postBody' && $key != 'httpHeaders' && ! isset($method['parameters'][$key])) {
         throw new apiException("($name) unknown parameter: '$key'");
       }
     }
@@ -149,7 +156,6 @@ class apiServiceResource {
     $restBasePath = $this->service->restBasePath;
 
     // Process Media Request
-    $contentType = false;
     if (isset($method['mediaUpload'])) {
       $media = apiMediaFileUpload::process($postBody, $method, $parameters);
       if (isset($media['content-type'])) {

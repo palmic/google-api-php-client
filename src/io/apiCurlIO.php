@@ -92,17 +92,31 @@ class apiCurlIO implements apiIO {
 
     $ch = curl_init();
     curl_setopt_array($ch, self::$DEFAULT_CURL_PARAMS);
+//var_dump($request->getUrl());
     curl_setopt($ch, CURLOPT_URL, $request->getUrl());
     if ($request->getPostBody()) {
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $request->getPostBody());
+      curl_setopt($ch, CURLOPT_POST, true);
+		if ($request->getRequestHeader('content-type') != 'application/json; charset=UTF-8') {
+			$postParams = array();
+					foreach (json_decode($request->getPostBody(), true) as $key => $val) {
+						$postParams[] = $key .'='. urlencode($val);
+					}
+//var_dump(implode('&', $postParams));
+			curl_setopt($ch, CURLOPT_POSTFIELDS, implode('&', $postParams));
+		}
+		else {
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $request->getPostBody());
+		}
     }
 
     $requestHeaders = $request->getRequestHeaders();
     if ($requestHeaders && is_array($requestHeaders)) {
       $parsed = array();
-      foreach ($requestHeaders as $k => $v) {
+		unset($requestHeaders['content-length']);
+		foreach ($requestHeaders as $k => $v) {
         $parsed[] = "$k: $v";
       }
+//var_dump($parsed);
       curl_setopt($ch, CURLOPT_HTTPHEADER, $parsed);
     }
 

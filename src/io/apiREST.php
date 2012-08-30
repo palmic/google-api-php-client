@@ -37,20 +37,32 @@ class apiREST {
   static public function execute(apiServiceRequest $req) {
     $result = null;
     $postBody = $req->getPostBody();
-    $url = self::createRequestUri(
-        $req->getRestBasePath(), $req->getRestPath(), $req->getParameters());
+
+	  $params = $req->getParameters();
+	  if ($params['httpHeaders']) {
+		  $httpHeaders = $params['httpHeaders'];
+		  unset($params['httpHeaders']);
+	  }
+
+	  $url = self::createRequestUri(
+        $req->getRestBasePath(), $req->getRestPath(), $params);
 
     $httpRequest = new apiHttpRequest($url, $req->getHttpMethod(), null, $postBody);
     if ($postBody) {
       $contentTypeHeader = array();
       if (isset($req->contentType) && $req->contentType) {
-        $contentTypeHeader['content-type'] = $req->contentType;
+		  if ($req->contentType != 'empty') {
+			  $contentTypeHeader['content-type'] = $req->contentType;
+		  }
       } else {
         $contentTypeHeader['content-type'] = 'application/json; charset=UTF-8';
         $contentTypeHeader['content-length'] = apiUtils::getStrLen($postBody);
       }
       $httpRequest->setRequestHeaders($contentTypeHeader);
     }
+	  if ($httpHeaders) {
+		  $httpRequest->setRequestHeaders($httpHeaders);
+	  }
 
     $httpRequest = apiClient::$io->authenticatedRequest($httpRequest);
     $decodedResponse = self::decodeHttpResponse($httpRequest);

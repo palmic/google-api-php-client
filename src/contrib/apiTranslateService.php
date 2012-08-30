@@ -104,7 +104,21 @@ require_once 'service/apiServiceRequest.php';
      * @return TranslationsListResponse
      */
     public function listTranslations($q, $target, $optParams = array()) {
-      $params = array('q' => $q, 'target' => $target);
+      $params = array(
+		  'httpHeaders' => array(
+			  'X-HTTP-Method-Override' => 'GET',
+		  ),
+		  'contentType' => 'empty',
+		  'postBody' => array(
+			  'q' => $q,
+			  'target' => $target,
+			  'source' => $optParams['source'],
+		  ),
+	  );
+	  unset(
+	  	$optParams['source'],
+	  	$optParams['format']
+	  );
       $params = array_merge($params, $optParams);
       $data = $this->__call('list', array($params));
       if ($this->useObjects()) {
@@ -147,9 +161,12 @@ class apiTranslateService extends apiService {
     $this->serviceName = 'translate';
 
     $apiClient->addService($this->serviceName, $this->version);
-    $this->languages = new LanguagesServiceResource($this, $this->serviceName, 'languages', json_decode('{"methods": {"list": {"parameters": {"target": {"type": "string", "location": "query"}}, "id": "language.languages.list", "httpMethod": "GET", "path": "v2/languages", "response": {"$ref": "LanguagesListResponse"}}}}', true));
-    $this->detections = new DetectionsServiceResource($this, $this->serviceName, 'detections', json_decode('{"methods": {"list": {"parameters": {"q": {"repeated": true, "required": true, "type": "string", "location": "query"}}, "id": "language.detections.list", "httpMethod": "GET", "path": "v2/detect", "response": {"$ref": "DetectionsListResponse"}}}}', true));
-    $this->translations = new TranslationsServiceResource($this, $this->serviceName, 'translations', json_decode('{"methods": {"list": {"parameters": {"q": {"repeated": true, "required": true, "type": "string", "location": "query"}, "source": {"type": "string", "location": "query"}, "cid": {"repeated": true, "type": "string", "location": "query"}, "target": {"required": true, "type": "string", "location": "query"}, "format": {"enum": ["html", "text"], "type": "string", "location": "query"}}, "id": "language.translations.list", "httpMethod": "GET", "path": "v2", "response": {"$ref": "TranslationsListResponse"}}}}', true));
+    $this->languages = new LanguagesServiceResource($this, $this->serviceName, 'languages', json_decode('{"methods": {"list": {"parameters": {"target": {"type": "string", "location": "query"}}, "id": "language.languages.list", "httpMethod": "GET", "path": "v2/languages", "response": {"$ref": "LanguagesListResponse"}}}}', TRUE));
+    $this->detections = new DetectionsServiceResource($this, $this->serviceName, 'detections', json_decode('{"methods": {"list": {"parameters": {"q": {"repeated": true, "required": true, "type": "string", "location": "query"}}, "id": "language.detections.list", "httpMethod": "GET", "path": "v2/detect", "response": {"$ref": "DetectionsListResponse"}}}}', TRUE));
+	  $this->translations = new TranslationsServiceResource($this, $this->serviceName, 'translations', json_decode(
+		  '{"methods": {"list": {"id": "language.translations.list", "httpMethod": "POST", "path": "v2", "response": {"$ref": "TranslationsListResponse"}}}}',
+		  TRUE
+	  ));
   }
 }
 
